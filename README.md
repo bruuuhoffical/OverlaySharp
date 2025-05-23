@@ -1,7 +1,7 @@
 # OverlaySharp
 
 > A transparent, clickable, resizable, always-on-top overlay framework for .NET 8 — powered by ImGui.NET  
-> Designed for game ESPs, visual overlays, or diagnostic UIs.
+> Designed for game ESPs, visual overlays, cheat menus, or diagnostic UIs.
 
 **Created by [BRUUUH]**
 
@@ -10,13 +10,14 @@
 ### ✅ Features
 
 - Transparent + topmost Form overlay
-- Fully clickable or click-through (toggle with F1)
-- Built-in ImGui.NET rendering (no unsafe code)
-- Draw text, lines, boxes, circles
+- Fully clickable or click-through (toggle with `F1`)
+- ImGui.NET rendering (no unsafe code, no D3D required)
 - Dual positioning system: raw `Vector2` or anchor keywords like `"bottom center"`
-- Hotkey toggle for click-through (`F1`) and show/hide (`F2`)
-- Overlay watermark: `OverlaySharp by BRUUUH`
-- Supports any Windows target process window
+- Draw helpers: text, lines, boxes, circles
+- Toggle overlay visibility with `F2`
+- Auto-follow target process (e.g. games, emulators)
+- Default watermark: `OverlaySharp by BRUUUH`
+- Lightweight, NuGet-ready architecture
 
 ---
 
@@ -25,15 +26,20 @@
 #### NuGet (coming soon)
 ```bash
 dotnet add package OverlaySharp
+```
 
-# How to Use OverlaySharp (Full Docs Section)
+#### Manual
+1. Clone/download this repo
+2. Build in **Release**
+3. Reference `OverlaySharp.dll` in your own project
 
-⚙️ Step-by-Step Usage
+---
 
-1. Create Your ESP Class
+## 📘 Usage Documentation
 
-Inherit from Overlay and override Render():
+### 1. Create Your Custom Overlay Class
 
+```csharp
 using OverlaySharp;
 using ImGuiNET;
 using System.Drawing;
@@ -45,307 +51,116 @@ public class MyESP : Overlay
 
     protected override void Render()
     {
-        // ✅ Easy: anchor-based
         OverlayDraw.DrawText("top center", "OverlaySharp by BRUUUH", Color.LimeGreen);
-
-        // ✅ Raw: pixel positions
         OverlayDraw.DrawBox(new Vector2(100, 200), 150, 80, Color.Red);
-
-        // ✅ Draw line between 2 anchor points
         OverlayDraw.DrawLine("bottom left", "top right", Color.Yellow, 1.5f);
+        OverlayDraw.DrawCircle("center", 60, Color.Aqua);
     }
 }
-
+```
 
 ---
 
-2. Launch Overlay from Your App
+### 2. Attach to a Process & Run
 
+```csharp
 using System.Diagnostics;
 using System.Windows.Forms;
 
-var process = Process.GetProcessesByName("HD-Player").FirstOrDefault();
-if (process == null) return;
+var proc = Process.GetProcessesByName("HD-Player").FirstOrDefault();
+if (proc == null) return;
 
 var overlay = new MyESP();
-overlay.AttachTo(process.MainWindowHandle);
+overlay.AttachTo(proc.MainWindowHandle);
 Application.Run(overlay);
+```
 
-> Replace "HD-Player" with the process name of the game/app you want to overlay.
-
-
-
+> Replace `"HD-Player"` with the name of your target process (game, emulator, etc.)
 
 ---
 
-🔤 Positioning Options
+### 3. Anchor Keywords (Built-in Positioning)
 
-You can use either:
+OverlaySharp supports anchor keywords to easily position elements without using raw coordinates.
 
-Raw Position	Anchor Keyword
+**Examples:**
+- `"top left"`, `"top center"`, `"top right"`
+- `"middle left"`, `"center"` / `"middle center"`, `"middle right"`
+- `"bottom left"`, `"bottom center"`, `"bottom right"`
 
-new Vector2(150, 300)	"top left"
-new Vector2(500, 100)	"middle center"
-new Vector2(900, 700)	"bottom right"
-
-
-Supported anchors:
-
-"top left", "top center", "top right"
-
-"middle left", "center" / "middle center", "middle right"
-
-"bottom left", "bottom center", "bottom right"
-
-
+Or use raw:
+```csharp
+new Vector2(300, 500)
+```
 
 ---
 
-🎨 Drawing API Summary
+### 4. Drawing API Summary
 
-Method	Usage
+| Method | Description |
+|--------|-------------|
+| `OverlayDraw.DrawText(pos, string, Color)` | Draws text |
+| `OverlayDraw.DrawBox(pos, width, height, Color)` | Draws rectangle |
+| `OverlayDraw.DrawLine(start, end, Color)` | Draws a line |
+| `OverlayDraw.DrawCircle(center, radius, Color)` | Draws circle |
 
-OverlayDraw.DrawText(pos, text, color)	Draw text
-OverlayDraw.DrawBox(pos, width, height, color, thickness)	Draw outline box
-OverlayDraw.DrawLine(start, end, color, thickness)	Draw line
-OverlayDraw.DrawCircle(center, radius, color)	Draw circle
-
-
-PosHow to Use OverlaySharp (Full Docs Section)
-
-⚙️ Step-by-Step Usage
-
-1. Create Your ESP Class
-
-Inherit from Overlay and override Render():
-
-using OverlaySharp;
-using ImGuiNET;
-using System.Drawing;
-using System.Numerics;
-
-public class MyESP : Overlay
-{
-    public MyESP() : base(new OverlayConfig()) {}
-
-    protected override void Render()
-    {
-        // ✅ Easy: anchor-based
-        OverlayDraw.DrawText("top center", "OverlaySharp by BRUUUH", Color.LimeGreen);
-
-        // ✅ Raw: pixel positions
-        OverlayDraw.DrawBox(new Vector2(100, 200), 150, 80, Color.Red);
-
-        // ✅ Draw line between 2 anchor points
-        OverlayDraw.DrawLine("bottom left", "top right", Color.Yellow, 1.5f);
-    }
-}
-
+Position can be either:
+- `Vector2`
+- or anchor string like `"bottom right"`
 
 ---
 
-2. Launch Overlay from Your App
+### ⌨️ Hotkeys
 
-using System.Diagnostics;
-using System.Windows.Forms;
-
-var process = Process.GetProcessesByName("HD-Player").FirstOrDefault();
-if (process == null) return;
-
-var overlay = new MyESP();
-overlay.AttachTo(process.MainWindowHandle);
-Application.Run(overlay);
-
-> Replace "HD-Player" with the process name of the game/app you want to overlay.
-
-
-
+| Key | Action |
+|-----|--------|
+| `F1` | Toggle click-through (mouse passthrough) |
+| `F2` | Toggle visibility (show/hide overlay)    |
 
 ---
 
-🔤 Positioning Options
+### ❗ Requirements
 
-You can use either:
-
-Raw Position	Anchor Keyword
-
-new Vector2(150, 300)	"top left"
-new Vector2(500, 100)	"middle center"
-new Vector2(900, 700)	"bottom right"
-
-
-Supported anchors:
-
-"top left", "top center", "top right"
-
-"middle left", "center" / "middle center", "middle right"
-
-"bottom left", "bottom center", "bottom right"
-
-
+- .NET 8.0 SDK
+- Windows OS (WinForms base)
+- `ImGui.NET` package (already referenced internally)
 
 ---
 
-🎨 Drawing API Summary
+### 📦 Publishing to NuGet (For You)
 
-Method	Usage
+In your `.csproj`:
 
-OverlayDraw.DrawText(pos, text, color)	Draw text
-OverlayDraw.DrawBox(pos, width, height, color, thickness)	Draw outline box
-OverlayDraw.DrawLine(start, end, color, thickness)	Draw line
-OverlayDraw.DrawCircle(center, radius, color)	Draw circle
+```xml
+<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+<PackageId>OverlaySharp</PackageId>
+<Version>1.0.0</Version>
+<Authors>BRUUUH</Authors>
+<Description>A transparent overlay framework using ImGui.NET for .NET 8</Description>
+```
 
-
-Position can be Vector2 or anchor string like "center".
-
-
----
-
-⌨️ Hotkeys
-
-Key	Action
-
-F1	Toggle click-through (on/off)
-F2	Show/hide overlay
-
-
+Then:
+```bash
+dotnet build -c Release
+dotnet nuget push bin/Release/OverlaySharp.1.0.0.nupkg --api-key YOUR_KEY --source https://api.nuget.org/v3/index.json
+```
 
 ---
 
-✅ NuGet Package (when ready)
+### 💡 Coming Soon
 
-dotnet add package OverlaySharp
-
-> Until then, clone the repo, build in Release, and reference OverlaySharp.dll manually.
-
-
-
+- `OverlaySharp.DirectX` for high-performance rendering
+- `DrawHealthBar`, `DrawFilledBox`, and advanced ESP helpers
+- Streamer mode (`SetWindowDisplayAffinity`)
+- Runtime UI settings / config panel
 
 ---
 
-❗ Requirements
+### 📄 License
 
-.NET 8.0
-
-Windows OS (WinForms-based)
-
-Reference ImGui.NET NuGet package (already handled)
-How to Use OverlaySharp (Full Docs Section)
-
-⚙️ Step-by-Step Usage
-
-1. Create Your ESP Class
-
-Inherit from Overlay and override Render():
-
-using OverlaySharp;
-using ImGuiNET;
-using System.Drawing;
-using System.Numerics;
-
-public class MyESP : Overlay
-{
-    public MyESP() : base(new OverlayConfig()) {}
-
-    protected override void Render()
-    {
-        // ✅ Easy: anchor-based
-        OverlayDraw.DrawText("top center", "OverlaySharp by BRUUUH", Color.LimeGreen);
-
-        // ✅ Raw: pixel positions
-        OverlayDraw.DrawBox(new Vector2(100, 200), 150, 80, Color.Red);
-
-        // ✅ Draw line between 2 anchor points
-        OverlayDraw.DrawLine("bottom left", "top right", Color.Yellow, 1.5f);
-    }
-}
-
+MIT License. Free to use, modify, and fork.  
+Respect the watermark, or rewrite your own overlay 😤
 
 ---
 
-2. Launch Overlay from Your App
-
-using System.Diagnostics;
-using System.Windows.Forms;
-
-var process = Process.GetProcessesByName("HD-Player").FirstOrDefault();
-if (process == null) return;
-
-var overlay = new MyESP();
-overlay.AttachTo(process.MainWindowHandle);
-Application.Run(overlay);
-
-> Replace "HD-Player" with the process name of the game/app you want to overlay.
-
-
-
-
----
-
-🔤 Positioning Options
-
-You can use either:
-
-Raw Position	Anchor Keyword
-
-new Vector2(150, 300)	"top left"
-new Vector2(500, 100)	"middle center"
-new Vector2(900, 700)	"bottom right"
-
-
-Supported anchors:
-
-"top left", "top center", "top right"
-
-"middle left", "center" / "middle center", "middle right"
-
-"bottom left", "bottom center", "bottom right"
-
-
-
----
-
-🎨 Drawing API Summary
-
-Method	Usage
-
-OverlayDraw.DrawText(pos, text, color)	Draw text
-OverlayDraw.DrawBox(pos, width, height, color, thickness)	Draw outline box
-OverlayDraw.DrawLine(start, end, color, thickness)	Draw line
-OverlayDraw.DrawCircle(center, radius, color)	Draw circle
-
-
-Position can be Vector2 or anchor string like "center".
-
-
----
-
-⌨️ Hotkeys
-
-Key	Action
-
-F1	Toggle click-through (on/off)
-F2	Show/hide overlay
-
-
-
----
-
-✅ NuGet Package (when ready)
-
-dotnet add package OverlaySharp
-
-> Until then, clone the repo, build in Release, and reference OverlaySharp.dll manually.
-
-
-
-
----
-
-❗ Requirements
-
-.NET 8.0
-
-Windows OS (WinForms-based)
-
-Reference ImGui.NET NuGet package (already handled)
+## ⭐ If you build something with OverlaySharp, star the repo & tag @BRUUUH on GitHub
