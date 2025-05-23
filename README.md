@@ -125,25 +125,7 @@ Position can be either:
 - Windows OS (WinForms base)
 - `ImGui.NET` package (already referenced internally)
 
----
 
-### 📦 Publishing to NuGet (For You)
-
-In your `.csproj`:
-
-```xml
-<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-<PackageId>OverlaySharp</PackageId>
-<Version>1.0.0</Version>
-<Authors>BRUUUH</Authors>
-<Description>A transparent overlay framework using ImGui.NET for .NET 8</Description>
-```
-
-Then:
-```bash
-dotnet build -c Release
-dotnet nuget push bin/Release/OverlaySharp.1.0.0.nupkg --api-key YOUR_KEY --source https://api.nuget.org/v3/index.json
-```
 
 ---
 
